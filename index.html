@@ -919,16 +919,22 @@
                 }, 400);
             }
 
-            handleSearchSubmit(e) {
-                e.preventDefault();
-                clearTimeout(this.debounceTimer);
-                const inputVal = document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value;
-                this.searchQuery = inputVal.trim();
-                this.currentPage = 1;
-                if (this.searchQuery.length > 0) {
-                    this.currentCategory = 'search';
-                }
-                this.fetchMovies();
+           handleSearchSubmit(e) {
+               e.preventDefault();
+               clearTimeout(this.debounceTimer);
+               const inputVal = document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value;
+               this.searchQuery = inputVal.trim();
+               this.currentPage = 1;
+               if (this.searchQuery.length > 0) {
+                   this.currentCategory = 'search';
+               }
+               this.fetchMovies();
+
+               // Scroll down smoothly to the movie grid section
+               const movieSection = document.getElementById('movies-section');
+               if (movieSection) {
+                   movieSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+               }
             }
 
             clearSearch() {

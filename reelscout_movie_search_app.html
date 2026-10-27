@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#070709] text-gray-100 antialiased selection:bg-[#e50914] selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReelScout - Discover Movies & Cinematic Trailers</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            crimson: '#e50914',
+                            hover: '#b80710',
+                            bg: '#070709',
+                            card: '#0f1015',
+                            border: '#1f2029',
+                            textMuted: '#9ca3af'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070709;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2029;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e50914;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Gradient overlays */
+        .hero-gradient {
+            background: linear-gradient(0deg, #070709 0%, rgba(7,7,9,0.7) 50%, rgba(7,7,9,0.2) 100%);
+        }
+        .hero-side-gradient {
+            background: linear-gradient(90deg, #070709 0%, rgba(7,7,9,0.8) 40%, rgba(7,7,9,0) 100%);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-[#070709] text-gray-100 overflow-x-hidden">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 w-full bg-[#0f1015]/90 backdrop-blur-md border-b border-[#1f2029]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Logo & Tagline -->
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="javascript:void(0)" onclick="app.setCategory('trending')" class="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[#e50914] rounded-lg p-1">
+                    <div class="w-9 h-9 bg-[#e50914] rounded-xl flex items-center justify-center shadow-lg shadow-[#e50914]/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid font-black fa-film text-white text-lg"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1">
+                            Reel<span class="text-[#e50914]">Scout</span>
+                        </span>
+                    </div>
+                </a>
+                <span class="hidden md:inline-block px-2 py-0.5 text-xs font-semibold bg-[#1f2029] text-gray-400 rounded-full border border-gray-800">
+                    Cinema Hub
+                </span>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-xl relative hidden sm:block">
+                <form onsubmit="app.handleSearchSubmit(event)" class="relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="Search movies, directors, actors... (Press '/' to focus)" 
+                        class="w-full bg-[#070709] border border-[#1f2029] rounded-xl pl-10 pr-20 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all"
+                        oninput="app.handleSearchInput(this.value)">
+                    <button type="button" id="clearSearchBtn" onclick="app.clearSearch()" class="hidden absolute right-10 text-gray-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                    <span class="absolute right-3 px-1.5 py-0.5 text-[10px] font-mono bg-[#1f2029] text-gray-400 rounded border border-gray-700 pointer-events-none">/</span>
+                </form>
+            </div>
+
+            <!-- Right Nav Links & Actions -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- Watchlist Nav Button -->
+                <button onclick="app.setCategory('watchlist')" id="watchlistNavBtn" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1f2029]/60 hover:bg-[#1f2029] border border-[#1f2029] text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]">
+                    <i class="fa-solid fa-bookmark text-[#e50914]"></i>
+                    <span class="hidden md:inline">Watchlist</span>
+                    <span id="watchlistBadge" class="bg-[#e50914] text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <!-- API Key Status / Settings Modal Toggle -->
+                <button onclick="app.openSettingsModal()" title="API Settings" class="p-2 rounded-xl bg-[#1f2029]/60 hover:bg-[#1f2029] border border-[#1f2029] text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#e50914]">
+                    <i class="fa-solid fa-key text-xs sm:text-sm text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Search Input Bar -->
+        <div class="p-3 border-t border-[#1f2029] sm:hidden bg-[#070709]">
+            <form onsubmit="app.handleSearchSubmit(event)" class="relative flex items-center">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400 text-sm"></i>
+                <input type="text" id="mobileSearchInput" placeholder="Search movies..." 
+                    class="w-full bg-[#0f1015] border border-[#1f2029] rounded-xl pl-10 pr-10 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#e50914]"
+                    oninput="app.handleSearchInput(this.value)">
+                <button type="button" id="mobileClearSearchBtn" onclick="app.clearSearch()" class="hidden absolute right-3 text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Dynamic Hero Showcase Section -->
+        <section id="heroSection" class="relative w-full rounded-3xl overflow-hidden border border-[#1f2029] bg-[#0f1015] shadow-2xl min-h-[380px] sm:min-h-[460px] flex items-end">
+            <!-- Hero Background Media -->
+            <div id="heroBackdrop" class="absolute inset-0 bg-cover bg-center transition-all duration-700 filter brightness-90"></div>
+            <div class="absolute inset-0 hero-gradient"></div>
+            <div class="absolute inset-0 hero-side-gradient"></div>
+
+            <!-- Hero Details -->
+            <div class="relative z-10 p-6 sm:p-10 max-w-3xl space-y-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="px-3 py-1 bg-[#e50914] text-white text-xs font-bold rounded-full uppercase tracking-wider shadow">
+                        Featured Movie
+                    </span>
+                    <span id="heroRating" class="flex items-center gap-1 px-2.5 py-1 bg-black/60 backdrop-blur-md text-amber-400 text-xs font-bold rounded-lg border border-white/10">
+                        <i class="fa-solid fa-star text-xs"></i> 0.0
+                    </span>
+                    <span id="heroYear" class="px-2.5 py-1 bg-black/60 backdrop-blur-md text-gray-300 text-xs font-semibold rounded-lg border border-white/10">
+                        2026
+                    </span>
+                </div>
+
+                <h1 id="heroTitle" class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight line-clamp-2 drop-shadow-md">
+                    Loading Showcase...
+                </h1>
+
+                <p id="heroOverview" class="text-sm sm:text-base text-gray-300 line-clamp-3 leading-relaxed drop-shadow">
+                    Discover detailed insights, official trailers, casting information, and curated movies.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <button id="heroTrailerBtn" onclick="" class="flex items-center gap-2 px-6 py-3 bg-[#e50914] hover:bg-[#b80710] text-white font-semibold text-sm rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-[#e50914]/30 focus:outline-none">
+                        <i class="fa-solid fa-play"></i> Watch Trailer
+                    </button>
+                    <button id="heroDetailsBtn" onclick="" class="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold text-sm rounded-xl border border-white/20 transition-all focus:outline-none">
+                        <i class="fa-solid fa-circle-info"></i> More Details
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category & Filter Bar -->
+        <section class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1f2029] pb-4">
+                
+                <!-- Category Tabs -->
+                <nav class="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar py-1">
+                    <button onclick="app.setCategory('trending')" id="cat-trending" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap bg-[#e50914] text-white">
+                        <i class="fa-solid fa-fire mr-1.5 text-xs"></i> Trending
+                    </button>
+                    <button onclick="app.setCategory('popular')" id="cat-popular" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-[#1f2029] transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-chart-line mr-1.5 text-xs"></i> Popular
+                    </button>
+                    <button onclick="app.setCategory('top_rated')" id="cat-top_rated" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-[#1f2029] transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-trophy mr-1.5 text-xs"></i> Top Rated
+                    </button>
+                    <button onclick="app.setCategory('upcoming')" id="cat-upcoming" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-[#1f2029] transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-calendar-days mr-1.5 text-xs"></i> Upcoming
+                    </button>
+                </nav>
+
+                <!-- Controls: Sort Dropdown & View Info -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <span id="resultsCount" class="text-xs text-gray-400 font-medium hidden lg:inline">Showing movies</span>
+                    <div class="relative flex items-center">
+                        <span class="text-xs text-gray-400 mr-2 font-medium">Sort:</span>
+                        <select id="sortSelect" onchange="app.handleSortChange(this.value)" class="bg-[#0f1015] border border-[#1f2029] rounded-xl px-3 py-1.5 text-xs font-medium text-gray-200 focus:outline-none focus:border-[#e50914]">
+                            <option value="popularity.desc">Most Popular</option>
+                            <option value="vote_average.desc">Highest Rated</option>
+                            <option value="primary_release_date.desc">Release Date (Newest)</option>
+                            <option value="title.asc">Title (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Genre Filter Pills (Dynamic from TMDB) -->
+            <div class="relative flex items-center">
+                <div id="genreContainer" class="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 w-full">
+                    <!-- Dynamic Pill Items -->
+                    <button onclick="app.toggleGenre(null)" id="genre-all" class="genre-pill px-3 py-1 rounded-lg text-xs font-medium bg-white text-black transition-colors shrink-0">
+                        All Genres
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Heading & Active Query Label -->
+        <div class="flex items-center justify-between">
+            <h2 id="sectionTitle" class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                Trending Movies
+            </h2>
+            <div id="activeFilterBadge" class="hidden text-xs bg-[#1f2029] text-gray-300 px-3 py-1 rounded-full border border-gray-700">
+                Filter applied
+            </div>
+        </div>
+
+        <!-- Movie Grid -->
+        <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            <!-- Movie cards will render here dynamically -->
+        </div>
+
+        <!-- Empty & Error States Container -->
+        <div id="statusMessage" class="hidden flex-col items-center justify-center py-16 text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-[#1f2029] flex items-center justify-center text-gray-400 text-2xl">
+                <i class="fa-solid fa-film"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 id="statusTitle" class="text-lg font-bold text-white">No movies found</h3>
+                <p id="statusDesc" class="text-xs text-gray-400 max-w-sm">Try adjusting your search query or removing active genre filters.</p>
+            </div>
+            <button onclick="app.resetFilters()" class="px-4 py-2 bg-[#1f2029] hover:bg-gray-800 text-xs font-semibold rounded-xl text-white transition-colors">
+                Reset Filters
+            </button>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="pagination" class="flex items-center justify-center gap-4 py-8">
+            <button id="prevPageBtn" onclick="app.changePage(-1)" class="px-4 py-2 bg-[#0f1015] border border-[#1f2029] hover:bg-[#1f2029] text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-40 disabled:pointer-events-none flex items-center gap-2">
+                <i class="fa-solid fa-chevron-left text-xs"></i> Previous
+            </button>
+            <span id="pageIndicator" class="text-xs text-gray-400 font-medium">Page 1 of 1</span>
+            <button id="nextPageBtn" onclick="app.changePage(1)" class="px-4 py-2 bg-[#0f1015] border border-[#1f2029] hover:bg-[#1f2029] text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-40 disabled:pointer-events-none flex items-center gap-2">
+                Next <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Movie Details Modal -->
+    <div id="movieModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 lg:p-8 flex justify-center items-start">
+        <div class="relative w-full max-w-4xl bg-[#0f1015] border border-[#1f2029] rounded-3xl overflow-hidden shadow-2xl my-8">
+            
+            <!-- Close Modal Button -->
+            <button onclick="app.closeMovieModal()" class="absolute top-4 right-4 z-20 w-10 h-10 bg-black/60 hover:bg-black/90 text-white rounded-full flex items-center justify-center transition-colors border border-white/10 focus:outline-none">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Modal Backdrop Header -->
+            <div class="relative h-64 sm:h-80 w-full bg-cover bg-center" id="modalBackdrop">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f1015] via-[#0f1015]/40 to-transparent"></div>
+            </div>
+
+            <!-- Modal Content Layout -->
+            <div class="relative px-6 sm:px-10 pb-10 -mt-24 space-y-8">
+                <div class="flex flex-col sm:flex-row gap-6 items-start">
+                    <!-- Movie Poster Image -->
+                    <img id="modalPoster" src="" alt="Movie Poster" class="w-36 sm:w-48 rounded-2xl border-2 border-[#1f2029] shadow-2xl object-cover shrink-0">
+                    
+                    <!-- Header Info -->
+                    <div class="space-y-3 flex-1 pt-2 sm:pt-16">
+                        <div class="flex flex-wrap items-center gap-2" id="modalGenres">
+                            <!-- Genre pills -->
+                        </div>
+
+                        <h2 id="modalTitle" class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight"></h2>
+                        <p id="modalTagline" class="text-xs sm:text-sm text-gray-400 italic font-serif"></p>
+
+                        <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-300 pt-1">
+                            <span id="modalRating" class="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+                                <i class="fa-solid fa-star"></i> 0.0
+                            </span>
+                            <span id="modalReleaseDate" class="flex items-center gap-1">
+                                <i class="fa-regular fa-calendar text-gray-500"></i> N/A
+                            </span>
+                            <span id="modalRuntime" class="flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-gray-500"></i> N/A
+                            </span>
+                        </div>
+
+                        <div class="pt-3 flex flex-wrap gap-3">
+                            <button id="modalWatchlistBtn" onclick="" class="px-5 py-2.5 bg-[#e50914] hover:bg-[#b80710] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shadow-lg shadow-[#e50914]/20">
+                                <i class="fa-solid fa-plus"></i> Add to Watchlist
+                            </button>
+                            <button id="modalTrailerBtn" onclick="" class="px-5 py-2.5 bg-[#1f2029] hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-2 border border-gray-700">
+                                <i class="fa-solid fa-play text-red-500"></i> Play Trailer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Section -->
+                <div class="space-y-2">
+                    <h3 class="text-sm uppercase tracking-wider text-gray-400 font-bold">Overview</h3>
+                    <p id="modalOverview" class="text-sm sm:text-base text-gray-300 leading-relaxed font-normal"></p>
+                </div>
+
+                <!-- Financials & Quick Stats -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-[#070709] rounded-2xl border border-[#1f2029] text-xs">
+                    <div>
+                        <span class="text-gray-500 block">Status</span>
+                        <span id="modalStatus" class="font-semibold text-white">N/A</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 block">Original Language</span>
+                        <span id="modalLanguage" class="font-semibold text-white uppercase">N/A</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 block">Budget</span>
+                        <span id="modalBudget" class="font-semibold text-white">N/A</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 block">Revenue</span>
+                        <span id="modalRevenue" class="font-semibold text-white">N/A</span>
+                    </div>
+                </div>
+
+                <!-- Top Cast Horizontal Carousel -->
+                <div class="space-y-3">
+                    <h3 class="text-sm uppercase tracking-wider text-gray-400 font-bold">Top Cast</h3>
+                    <div id="modalCast" class="flex items-center gap-4 overflow-x-auto hide-scrollbar py-2">
+                        <!-- Cast Cards dynamically rendered -->
+                    </div>
+                </div>
+
+                <!-- Similar Movies Recommendations -->
+                <div class="space-y-3">
+                    <h3 class="text-sm uppercase tracking-wider text-gray-400 font-bold">You Might Also Like</h3>
+                    <div id="modalSimilar" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Similar Movie Cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube Trailer Video Player Modal -->
+    <div id="trailerModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden border border-[#1f2029] shadow-2xl">
+            <button onclick="app.closeTrailerModal()" class="absolute top-3 right-3 z-10 w-9 h-9 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center border border-white/20">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <iframe id="trailerIframe" class="w-full h-full" src="" title="YouTube Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- API Key Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#0f1015] border border-[#1f2029] rounded-3xl p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#1f2029] pb-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-400"></i> TMDB API Key Settings
+                </h3>
+                <button onclick="app.closeSettingsModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-gray-400 leading-relaxed">
+                ReelScout comes with a default TMDB API key. If you wish to use your personal API key or experience rate limits, update it below.
+            </p>
+
+            <div class="space-y-2">
+                <label class="text-xs font-medium text-gray-300 block">Your TMDB API Key</label>
+                <input type="text" id="apiKeyInput" placeholder="Enter TMDB v3 API Key" class="w-full bg-[#070709] border border-[#1f2029] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#e50914]">
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <button onclick="app.resetApiKey()" class="text-xs text-gray-400 hover:text-white underline">
+                    Restore Default Key
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="app.closeSettingsModal()" class="px-4 py-2 bg-[#1f2029] hover:bg-gray-800 text-xs font-bold rounded-xl text-white">
+                        Cancel
+                    </button>
+                    <button onclick="app.saveApiKey()" class="px-4 py-2 bg-[#e50914] hover:bg-[#b80710] text-xs font-bold rounded-xl text-white">
+                        Save Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legal Views Modal (Privacy & Terms) -->
+    <div id="legalModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#0f1015] border border-[#1f2029] rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-[#1f2029] pb-3">
+                <h3 id="legalModalTitle" class="text-lg font-bold text-white">Terms of Use</h3>
+                <button onclick="app.closeLegalModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="legalModalBody" class="text-xs sm:text-sm text-gray-300 space-y-3 leading-relaxed">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer & Attribution Section -->
+    <footer class="w-full border-t border-[#1f2029] bg-[#070709] mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-[#e50914] rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-film text-white text-xs"></i>
+                    </div>
+                    <span class="text-lg font-bold text-white">ReelScout</span>
+                </div>
+                
+                <div class="flex items-center gap-6 text-xs text-gray-400 font-medium">
+                    <button onclick="app.openLegalModal('privacy')" class="hover:text-white transition-colors">Privacy Policy</button>
+                    <button onclick="app.openLegalModal('terms')" class="hover:text-white transition-colors">Terms of Service</button>
+                    <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors flex items-center gap-1">
+                        TMDB API <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mandatory TMDB Disclaimer & Attribution -->
+            <div class="border-t border-[#1f2029]/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-3 text-center sm:text-left">
+                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537afc2483a72c4652d0f81400a88b2f4583423d95d65914123079f241d609d.svg" alt="TMDB Logo" class="w-8 h-8 object-contain">
+                    <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                </div>
+                <p>&copy; 2026 ReelScout. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Script Logic -->
+    <script>
+        /**
+         * ReelScout Application Architecture
+         */
+        const DEFAULT_API_KEY = 'c52ee56c7e1c908b00406eee2528baf9';
+        const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+
+        const SVG_POSTER_FALLBACK = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450" fill="%230f1015"><rect width="300" height="450" fill="%230f1015"/><path d="M120 180h60v90h-60z" fill="%231f2029"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="sans-serif" font-size="16">No Image Available</text></svg>`;
+
+        class ReelScoutApp {
+            constructor() {
+                this.apiKey = localStorage.getItem('reelscout_api_key') || DEFAULT_API_KEY;
+                this.watchlist = JSON.parse(localStorage.getItem('reelscout_watchlist') || '[]');
+                this.genresMap = new Map();
+                this.selectedGenre = null;
+                this.currentCategory = 'trending'; // trending, popular, top_rated, upcoming, search, watchlist
+                this.searchQuery = '';
+                this.sortBy = 'popularity.desc';
+                this.currentPage = 1;
+                this.totalPages = 1;
+                this.debounceTimer = null;
+                this.heroMovie = null;
+
+                this.init();
+            }
+
+            async init() {
+                this.updateWatchlistBadge();
+                this.setupKeyboardShortcuts();
+                await this.fetchGenres();
+                this.loadHeroShowcase();
+                this.fetchMovies();
+            }
+
+            // Keyboard Shortcut Listener (Press '/' to search)
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('searchInput');
+                        if (searchInput) searchInput.focus();
+                    }
+                });
+            }
+
+            // Fetch Live Genre List from TMDB
+            async fetchGenres() {
+                try {
+                    const res = await fetch(`${TMDB_BASE_URL}/genre/movie/list?api_key=${this.apiKey}&language=en-US`);
+                    if (!res.ok) throw new Error('Failed to fetch genres');
+                    const data = await res.json();
+                    
+                    const genreContainer = document.getElementById('genreContainer');
+                    data.genres.forEach(g => {
+                        this.genresMap.set(g.id, g.name);
+                        
+                        const pill = document.createElement('button');
+                        pill.id = `genre-${g.id}`;
+                        pill.className = `genre-pill px-3 py-1 rounded-lg text-xs font-medium bg-[#1f2029] text-gray-300 hover:text-white hover:bg-gray-800 transition-colors shrink-0 border border-transparent`;
+                        pill.innerText = g.name;
+                        pill.onclick = () => this.toggleGenre(g.id);
+                        genreContainer.appendChild(pill);
+                    });
+                } catch (err) {
+                    console.error('Genre Loading Error:', err);
+                }
+            }
+
+            // Render Dynamic Hero Featured Banner
+            async loadHeroShowcase() {
+                try {
+                    const res = await fetch(`${TMDB_BASE_URL}/trending/movie/day?api_key=${this.apiKey}`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.results && data.results.length > 0) {
+                        this.heroMovie = data.results[0];
+                        const backdropUrl = this.heroMovie.backdrop_path ? `${IMAGE_BASE_URL}w1280${this.heroMovie.backdrop_path}` : '';
+                        
+                        document.getElementById('heroBackdrop').style.backgroundImage = `url('${backdropUrl}')`;
+                        document.getElementById('heroTitle').innerText = this.heroMovie.title || this.heroMovie.name;
+                        document.getElementById('heroOverview').innerText = this.heroMovie.overview || 'No description available for this trending release.';
+                        document.getElementById('heroRating').innerHTML = `<i class="fa-solid fa-star text-xs text-amber-400"></i> ${this.heroMovie.vote_average ? this.heroMovie.vote_average.toFixed(1) : 'N/A'}`;
+                        document.getElementById('heroYear').innerText = (this.heroMovie.release_date || '').split('-')[0] || '2026';
+                        
+                        document.getElementById('heroTrailerBtn').onclick = () => this.playMovieTrailer(this.heroMovie.id);
+                        document.getElementById('heroDetailsBtn').onclick = () => this.openMovieModal(this.heroMovie.id);
+                    }
+                } catch (err) {
+                    console.error('Hero showcase error:', err);
+                }
+            }
+
+            // Fetch Main Movie Grid Data
+            async fetchMovies() {
+                this.renderSkeletons();
+                this.updateUIState();
+
+                let endpoint = '';
+                if (this.currentCategory === 'watchlist') {
+                    this.renderWatchlist();
+                    return;
+                }
+
+                if (this.searchQuery.trim().length > 0) {
+                    endpoint = `${TMDB_BASE_URL}/search/movie?api_key=${this.apiKey}&query=${encodeURIComponent(this.searchQuery)}&page=${this.currentPage}`;
+                } else if (this.currentCategory === 'trending') {
+                    endpoint = `${TMDB_BASE_URL}/trending/movie/week?api_key=${this.apiKey}&page=${this.currentPage}`;
+                } else {
+                    endpoint = `${TMDB_BASE_URL}/movie/${this.currentCategory}?api_key=${this.apiKey}&page=${this.currentPage}`;
+                }
+
+                try {
+                    const res = await fetch(endpoint);
+                    if (!res.ok) throw new Error('Failed to load movie data');
+                    const data = await res.json();
+
+                    let movies = data.results || [];
+
+                    // Apply active Genre filter if set
+                    if (this.selectedGenre) {
+                        movies = movies.filter(m => m.genre_ids && m.genre_ids.includes(this.selectedGenre));
+                    }
+
+                    // Apply Sorting
+                    movies = this.sortMoviesList(movies);
+
+                    this.totalPages = Math.min(data.total_pages || 1, 500); // TMDB caps at 500 pages
+                    this.renderMovieGrid(movies);
+                    this.updatePaginationUI();
+                } catch (err) {
+                    console.error('Movie fetch error:', err);
+                    this.showStatus('Error Loading Movies', 'Please check your internet connection or verify your TMDB API Key settings.');
+                }
+            }
+
+            // Sort Movie List client-side for smooth interaction
+            sortMoviesList(movies) {
+                const list = [...movies];
+                if (this.sortBy === 'vote_average.desc') {
+                    return list.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+                } else if (this.sortBy === 'primary_release_date.desc') {
+                    return list.sort((a, b) => new Date(b.release_date || 0) - new Date(a.release_date || 0));
+                } else if (this.sortBy === 'title.asc') {
+                    return list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                }
+                // default popularity
+                return list.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+            }
+
+            // Render Skeleton Loaders
+            renderSkeletons() {
+                const grid = document.getElementById('movieGrid');
+                const statusMsg = document.getElementById('statusMessage');
+                statusMsg.classList.add('hidden');
+                grid.classList.remove('hidden');
+
+                grid.innerHTML = Array(10).fill(0).map(() => `
+                    <div class="bg-[#0f1015] border border-[#1f2029] rounded-2xl p-3 space-y-3 animate-pulse">
+                        <div class="w-full aspect-[2/3] bg-[#1f2029] rounded-xl"></div>
+                        <div class="h-4 bg-[#1f2029] rounded w-3/4"></div>
+                        <div class="flex justify-between items-center pt-1">
+                            <div class="h-3 bg-[#1f2029] rounded w-1/4"></div>
+                            <div class="h-3 bg-[#1f2029] rounded w-1/4"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Movie Cards
+            renderMovieGrid(movies) {
+                const grid = document.getElementById('movieGrid');
+                
+                if (!movies || movies.length === 0) {
+                    this.showStatus('No Movies Match Your Criteria', 'Try selecting a different genre or clearing your search phrase.');
+                    return;
+                }
+
+                grid.innerHTML = movies.map(movie => {
+                    const isWatchlisted = this.isInWatchlist(movie.id);
+                    const posterSrc = movie.poster_path ? `${IMAGE_BASE_URL}w500${movie.poster_path}` : SVG_POSTER_FALLBACK;
+                    const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+                    const year = (movie.release_date || '').split('-')[0] || 'N/A';
+
+                    return `
+                        <div class="group relative bg-[#0f1015] border border-[#1f2029] hover:border-gray-700 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col">
+                            <!-- Poster Image & Watchlist Quick Toggle -->
+                            <div class="relative w-full aspect-[2/3] overflow-hidden bg-[#070709] cursor-pointer" onclick="app.openMovieModal(${movie.id})">
+                                <img src="${posterSrc}" alt="${movie.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='${SVG_POSTER_FALLBACK}'">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#0f1015] via-transparent to-transparent opacity-60"></div>
+                                
+                                <!-- Rating Tag -->
+                                <span class="absolute top-2.5 left-2.5 px-2 py-1 bg-black/75 backdrop-blur-md text-amber-400 text-xs font-bold rounded-lg border border-white/10 flex items-center gap-1 shadow">
+                                    <i class="fa-solid fa-star text-[10px]"></i> ${rating}
+                                </span>
+
+                                <!-- Quick Watchlist Button -->
+                                <button onclick="event.stopPropagation(); app.toggleWatchlist(${movie.id}, '${movie.title.replace(/'/g, "\\'")}', '${movie.poster_path}', '${movie.vote_average}', '${movie.release_date}')" 
+                                    class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full ${isWatchlisted ? 'bg-[#e50914] text-white' : 'bg-black/60 text-gray-300 hover:text-white hover:bg-black/90'} backdrop-blur-md flex items-center justify-center transition-colors border border-white/10 shadow">
+                                    <i class="fa-solid ${isWatchlisted ? 'fa-bookmark' : 'fa-plus'} text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card Body Info -->
+                            <div class="p-3.5 flex-1 flex flex-col justify-between space-y-2 cursor-pointer" onclick="app.openMovieModal(${movie.id})">
+                                <div>
+                                    <h3 class="text-sm font-bold text-white group-hover:text-[#e50914] transition-colors line-clamp-1" title="${movie.title}">
+                                        ${movie.title}
+                                    </h3>
+                                    <p class="text-xs text-gray-400 font-medium">${year}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render Saved Watchlist View
+            renderWatchlist() {
+                const grid = document.getElementById('movieGrid');
+                if (this.watchlist.length === 0) {
+                    this.showStatus('Your Watchlist is Empty', 'Explore movies and click the bookmark icon to save titles for later.');
+                    document.getElementById('pagination').classList.add('hidden');
+                    return;
+                }
+
+                document.getElementById('pagination').classList.add('hidden');
+                grid.classList.remove('hidden');
+                document.getElementById('statusMessage').classList.add('hidden');
+
+                grid.innerHTML = this.watchlist.map(movie => {
+                    const posterSrc = movie.poster_path ? `${IMAGE_BASE_URL}w500${movie.poster_path}` : SVG_POSTER_FALLBACK;
+                    const rating = movie.vote_average ? Number(movie.vote_average).toFixed(1) : 'N/A';
+                    const year = (movie.release_date || '').split('-')[0] || 'N/A';
+
+                    return `
+                        <div class="group relative bg-[#0f1015] border border-[#1f2029] hover:border-gray-700 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 flex flex-col">
+                            <div class="relative w-full aspect-[2/3] overflow-hidden bg-[#070709] cursor-pointer" onclick="app.openMovieModal(${movie.id})">
+                                <img src="${posterSrc}" alt="${movie.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='${SVG_POSTER_FALLBACK}'">
+                                <span class="absolute top-2.5 left-2.5 px-2 py-1 bg-black/75 backdrop-blur-md text-amber-400 text-xs font-bold rounded-lg border border-white/10 flex items-center gap-1 shadow">
+                                    <i class="fa-solid fa-star text-[10px]"></i> ${rating}
+                                </span>
+                                <button onclick="event.stopPropagation(); app.toggleWatchlist(${movie.id})" 
+                                    class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-[#e50914] text-white backdrop-blur-md flex items-center justify-center transition-colors border border-white/10 shadow">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="p-3.5 flex-1 flex flex-col justify-between space-y-2 cursor-pointer" onclick="app.openMovieModal(${movie.id})">
+                                <div>
+                                    <h3 class="text-sm font-bold text-white group-hover:text-[#e50914] transition-colors line-clamp-1">
+                                        ${movie.title}
+                                    </h3>
+                                    <p class="text-xs text-gray-400 font-medium">${year}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Open Detailed Movie Modal
+            async openMovieModal(movieId) {
+                const modal = document.getElementById('movieModal');
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+
+                try {
+                    const [detailsRes, creditsRes, similarRes] = await Promise.all([
+                        fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${this.apiKey}&language=en-US`),
+                        fetch(`${TMDB_BASE_URL}/movie/${movieId}/credits?api_key=${this.apiKey}&language=en-US`),
+                        fetch(`${TMDB_BASE_URL}/movie/${movieId}/similar?api_key=${this.apiKey}&language=en-US`)
+                    ]);
+
+                    if (!detailsRes.ok) throw new Error('Failed to load modal details');
+
+                    const movie = await detailsRes.json();
+                    const credits = creditsRes.ok ? await creditsRes.json() : { cast: [] };
+                    const similar = similarRes.ok ? await similarRes.json() : { results: [] };
+
+                    // Backdrop & Poster
+                    const backdropUrl = movie.backdrop_path ? `${IMAGE_BASE_URL}w1280${movie.backdrop_path}` : '';
+                    document.getElementById('modalBackdrop').style.backgroundImage = backdropUrl ? `url('${backdropUrl}')` : 'none';
+                    document.getElementById('modalPoster').src = movie.poster_path ? `${IMAGE_BASE_URL}w500${movie.poster_path}` : SVG_POSTER_FALLBACK;
+
+                    // Info Titles & Meta
+                    document.getElementById('modalTitle').innerText = movie.title || movie.name;
+                    document.getElementById('modalTagline').innerText = movie.tagline ? `"${movie.tagline}"` : '';
+                    document.getElementById('modalOverview').innerText = movie.overview || 'No overview summary available for this film.';
+                    document.getElementById('modalRating').innerHTML = `<i class="fa-solid fa-star"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}`;
+                    document.getElementById('modalReleaseDate').innerHTML = `<i class="fa-regular fa-calendar text-gray-500"></i> ${movie.release_date || 'N/A'}`;
+                    document.getElementById('modalRuntime').innerHTML = `<i class="fa-regular fa-clock text-gray-500"></i> ${movie.runtime ? movie.runtime + ' min' : 'N/A'}`;
+
+                    // Genres
+                    const genreContainer = document.getElementById('modalGenres');
+                    genreContainer.innerHTML = (movie.genres || []).map(g => `
+                        <span class="px-2.5 py-1 bg-[#1f2029] text-gray-300 text-xs font-semibold rounded-lg border border-gray-700">${g.name}</span>
+                    `).join('');
+
+                    // Stats
+                    document.getElementById('modalStatus').innerText = movie.status || 'N/A';
+                    document.getElementById('modalLanguage').innerText = movie.original_language || 'EN';
+                    document.getElementById('modalBudget').innerText = movie.budget ? `$${movie.budget.toLocaleString()}` : 'N/A';
+                    document.getElementById('modalRevenue').innerText = movie.revenue ? `$${movie.revenue.toLocaleString()}` : 'N/A';
+
+                    // Buttons
+                    const isWatchlisted = this.isInWatchlist(movie.id);
+                    const watchlistBtn = document.getElementById('modalWatchlistBtn');
+                    watchlistBtn.innerHTML = `<i class="fa-solid ${isWatchlisted ? 'fa-[#e50914] fa-[#e50914] fa-check' : 'fa-plus'}"></i> ${isWatchlisted ? 'In Watchlist' : 'Add to Watchlist'}`;
+                    watchlistBtn.onclick = () => {
+                        this.toggleWatchlist(movie.id, movie.title, movie.poster_path, movie.vote_average, movie.release_date);
+                        this.openMovieModal(movie.id); // refresh state
+                    };
+
+                    document.getElementById('modalTrailerBtn').onclick = () => this.playMovieTrailer(movie.id);
+
+                    // Cast List
+                    const castContainer = document.getElementById('modalCast');
+                    const topCast = (credits.cast || []).slice(0, 8);
+                    if (topCast.length === 0) {
+                        castContainer.innerHTML = `<span class="text-xs text-gray-500">No cast details available.</span>`;
+                    } else {
+                        castContainer.innerHTML = topCast.map(actor => `
+                            <div class="flex-shrink-0 w-24 text-center space-y-1">
+                                <img src="${actor.profile_path ? IMAGE_BASE_URL + 'w185' + actor.profile_path : SVG_POSTER_FALLBACK}" 
+                                    alt="${actor.name}" class="w-20 h-20 rounded-full object-cover mx-auto border border-[#1f2029]" onerror="this.src='${SVG_POSTER_FALLBACK}'">
+                                <p class="text-xs font-bold text-white truncate">${actor.name}</p>
+                                <p class="text-[10px] text-gray-400 truncate">${actor.character}</p>
+                            </div>
+                        `).join('');
+                    }
+
+                    // Similar Movies
+                    const similarContainer = document.getElementById('modalSimilar');
+                    const similarList = (similar.results || []).slice(0, 4);
+                    if (similarList.length === 0) {
+                        similarContainer.innerHTML = `<span class="text-xs text-gray-500 col-span-full">No recommendations found.</span>`;
+                    } else {
+                        similarContainer.innerHTML = similarList.map(sim => `
+                            <div onclick="app.openMovieModal(${sim.id})" class="bg-[#070709] border border-[#1f2029] hover:border-gray-700 rounded-xl p-2 cursor-pointer transition-colors space-y-2">
+                                <img src="${sim.poster_path ? IMAGE_BASE_URL + 'w185' + sim.poster_path : SVG_POSTER_FALLBACK}" alt="${sim.title}" class="w-full aspect-[2/3] object-cover rounded-lg">
+                                <h4 class="text-xs font-bold text-white truncate">${sim.title}</h4>
+                            </div>
+                        `).join('');
+                    }
+
+                } catch (err) {
+                    console.error('Modal Error:', err);
+                }
+            }
+
+            closeMovieModal() {
+                document.getElementById('movieModal').classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            // Fetch & Play Official YouTube Trailer
+            async playMovieTrailer(movieId) {
+                try {
+                    const res = await fetch(`${TMDB_BASE_URL}/movie/${movieId}/videos?api_key=${this.apiKey}&language=en-US`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    
+                    const videos = data.results || [];
+                    const trailer = videos.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || videos[0];
+
+                    if (trailer && trailer.key) {
+                        const iframe = document.getElementById('trailerIframe');
+                        iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+                        document.getElementById('trailerModal').classList.remove('hidden');
+                    } else {
+                        alert('Official trailer video unavailable for this title.');
+                    }
+                } catch (err) {
+                    console.error('Trailer fetch error:', err);
+                }
+            }
+
+            closeTrailerModal() {
+                const iframe = document.getElementById('trailerIframe');
+                iframe.src = '';
+                document.getElementById('trailerModal').classList.add('hidden');
+            }
+
+            // Category Tabs Switching
+            setCategory(cat) {
+                this.currentCategory = cat;
+                this.searchQuery = '';
+                this.selectedGenre = null;
+                this.currentPage = 1;
+
+                document.getElementById('searchInput').value = '';
+                document.getElementById('mobileSearchInput').value = '';
+                document.getElementById('clearSearchBtn').classList.add('hidden');
+
+                // Update tab styles
+                document.querySelectorAll('.cat-btn').forEach(btn => {
+                    btn.classList.remove('bg-[#e50914]', 'text-white');
+                    btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-[#1f2029]');
+                });
+
+                const activeTab = document.getElementById(`cat-${cat}`);
+                if (activeTab) {
+                    activeTab.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-[#1f2029]');
+                    activeTab.classList.add('bg-[#e50914]', 'text-white');
+                }
+
+                this.resetGenrePillStyles();
+                this.fetchMovies();
+            }
+
+            // Genre Pill Toggle
+            toggleGenre(genreId) {
+                this.selectedGenre = genreId;
+                this.currentPage = 1;
+                this.resetGenrePillStyles();
+
+                if (genreId === null) {
+                    document.getElementById('genre-all').classList.add('bg-white', 'text-black');
+                    document.getElementById('genre-all').classList.remove('bg-[#1f2029]', 'text-gray-300');
+                } else {
+                    document.getElementById('genre-all').classList.remove('bg-white', 'text-black');
+                    document.getElementById('genre-all').classList.add('bg-[#1f2029]', 'text-gray-300');
+                    
+                    const el = document.getElementById(`genre-${genreId}`);
+                    if (el) {
+                        el.classList.add('bg-[#e50914]', 'text-white', 'border-[#e50914]');
+                        el.classList.remove('bg-[#1f2029]', 'text-gray-300');
+                    }
+                }
+
+                this.fetchMovies();
+            }
+
+            resetGenrePillStyles() {
+                document.querySelectorAll('.genre-pill').forEach(pill => {
+                    pill.classList.remove('bg-white', 'text-black', 'bg-[#e50914]', 'text-white');
+                    pill.classList.add('bg-[#1f2029]', 'text-gray-300');
+                });
+            }
+
+            // Search Handlers
+            handleSearchInput(val) {
+                const clearBtn = document.getElementById('clearSearchBtn');
+                const mobileClearBtn = document.getElementById('mobileClearSearchBtn');
+
+                if (val.trim().length > 0) {
+                    clearBtn.classList.remove('hidden');
+                    mobileClearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                    mobileClearBtn.classList.add('hidden');
+                }
+
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(() => {
+                    this.searchQuery = val.trim();
+                    this.currentPage = 1;
+                    if (this.searchQuery.length > 0) {
+                        this.currentCategory = 'search';
+                    } else {
+                        this.currentCategory = 'trending';
+                    }
+                    this.fetchMovies();
+                }, 400);
+            }
+
+            handleSearchSubmit(e) {
+                e.preventDefault();
+                clearTimeout(this.debounceTimer);
+                const inputVal = document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value;
+                this.searchQuery = inputVal.trim();
+                this.currentPage = 1;
+                if (this.searchQuery.length > 0) {
+                    this.currentCategory = 'search';
+                }
+                this.fetchMovies();
+            }
+
+            clearSearch() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('mobileSearchInput').value = '';
+                document.getElementById('clearSearchBtn').classList.add('hidden');
+                document.getElementById('mobileClearSearchBtn').classList.add('hidden');
+                this.searchQuery = '';
+                this.setCategory('trending');
+            }
+
+            // Sorting Handler
+            handleSortChange(value) {
+                this.sortBy = value;
+                this.fetchMovies();
+            }
+
+            // Watchlist Helpers
+            isInWatchlist(movieId) {
+                return this.watchlist.some(m => m.id === movieId);
+            }
+
+            toggleWatchlist(id, title, poster_path, vote_average, release_date) {
+                const index = this.watchlist.findIndex(m => m.id === id);
+                if (index > -1) {
+                    this.watchlist.splice(index, 1);
+                } else {
+                    this.watchlist.push({ id, title, poster_path, vote_average, release_date });
+                }
+                localStorage.setItem('reelscout_watchlist', JSON.stringify(this.watchlist));
+                this.updateWatchlistBadge();
+
+                if (this.currentCategory === 'watchlist') {
+                    this.renderWatchlist();
+                } else {
+                    this.fetchMovies();
+                }
+            }
+
+            updateWatchlistBadge() {
+                const badge = document.getElementById('watchlistBadge');
+                if (badge) badge.innerText = this.watchlist.length;
+            }
+
+            // Pagination Controls
+            changePage(delta) {
+                const newPage = this.currentPage + delta;
+                if (newPage >= 1 && newPage <= this.totalPages) {
+                    this.currentPage = newPage;
+                    this.fetchMovies();
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                }
+            }
+
+            updatePaginationUI() {
+                const pag = document.getElementById('pagination');
+                if (this.currentCategory === 'watchlist') {
+                    pag.classList.add('hidden');
+                    return;
+                }
+
+                pag.classList.remove('hidden');
+                document.getElementById('pageIndicator').innerText = `Page ${this.currentPage} of ${this.totalPages}`;
+                document.getElementById('prevPageBtn').disabled = this.currentPage === 1;
+                document.getElementById('nextPageBtn').disabled = this.currentPage >= this.totalPages;
+            }
+
+            // Dynamic UI Headings
+            updateUIState() {
+                const titlesMap = {
+                    trending: 'Trending Movies',
+                    popular: 'Popular Movies',
+                    top_rated: 'Top Rated Movies',
+                    upcoming: 'Upcoming Movies',
+                    search: `Search Results for "${this.searchQuery}"`,
+                    watchlist: 'My Saved Watchlist'
+                };
+
+                document.getElementById('sectionTitle').innerText = titlesMap[this.currentCategory] || 'Movies';
+
+                const filterBadge = document.getElementById('activeFilterBadge');
+                if (this.selectedGenre) {
+                    filterBadge.classList.remove('hidden');
+                    filterBadge.innerText = `Genre: ${this.genresMap.get(this.selectedGenre) || 'Selected'}`;
+                } else {
+                    filterBadge.classList.add('hidden');
+                }
+            }
+
+            showStatus(title, desc) {
+                const grid = document.getElementById('movieGrid');
+                const statusMsg = document.getElementById('statusMessage');
+                grid.classList.add('hidden');
+                statusMsg.classList.remove('hidden');
+                statusMsg.classList.add('flex');
+                document.getElementById('statusTitle').innerText = title;
+                document.getElementById('statusDesc').innerText = desc;
+                document.getElementById('pagination').classList.add('hidden');
+            }
+
+            resetFilters() {
+                this.selectedGenre = null;
+                this.resetGenrePillStyles();
+                document.getElementById('genre-all').classList.add('bg-white', 'text-black');
+                this.clearSearch();
+            }
+
+            // Settings Modal (API Key)
+            openSettingsModal() {
+                document.getElementById('apiKeyInput').value = this.apiKey;
+                document.getElementById('settingsModal').classList.remove('hidden');
+            }
+
+            closeSettingsModal() {
+                document.getElementById('settingsModal').classList.add('hidden');
+            }
+
+            saveApiKey() {
+                const val = document.getElementById('apiKeyInput').value.trim();
+                if (val) {
+                    this.apiKey = val;
+                    localStorage.setItem('reelscout_api_key', val);
+                    this.closeSettingsModal();
+                    this.init();
+                }
+            }
+
+            resetApiKey() {
+                this.apiKey = DEFAULT_API_KEY;
+                localStorage.removeItem('reelscout_api_key');
+                document.getElementById('apiKeyInput').value = DEFAULT_API_KEY;
+                this.closeSettingsModal();
+                this.init();
+            }
+
+            // Legal Terms & Privacy Modal
+            openLegalModal(type) {
+                const modal = document.getElementById('legalModal');
+                const title = document.getElementById('legalModalTitle');
+                const body = document.getElementById('legalModalBody');
+
+                if (type === 'privacy') {
+                    title.innerText = 'Privacy Policy';
+                    body.innerHTML = `
+                        <p>ReelScout respects your privacy. We do not collect, store, or sell personal identifiable information on external servers.</p>
+                        <p>Your movie Watchlist and custom TMDB API Key settings are stored strictly in your browser's client-side LocalStorage.</p>
+                        <p>All movie metadata, poster graphics, and stream video details are fetched directly using public TMDB API endpoints.</p>
+                    `;
+                } else {
+                    title.innerText = 'Terms of Use';
+                    body.innerHTML = `
+                        <p>ReelScout is a non-commercial movie discovery interface powered by the TMDB API.</p>
+                        <p>This product uses the TMDB API but is not endorsed or certified by TMDB. Movie trailers belong to their respective copyright holders on YouTube.</p>
+                        <p>Users agree to utilize this application responsibly without excessive automated API scraping.</p>
+                    `;
+                }
+                modal.classList.remove('hidden');
+            }
+
+            closeLegalModal() {
+                document.getElementById('legalModal').classList.add('hidden');
+            }
+        }
+
+        // Initialize App on Window Load
+        let app;
+        window.onload = () => {
+            app = new ReelScoutApp();
+        };
+    </script>
+</body>
+</html>
